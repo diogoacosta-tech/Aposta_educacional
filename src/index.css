@@ -1,0 +1,181 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --color-bg: #070b12;
+  --color-surface: #101826;
+  --color-surface-2: #172235;
+  --color-fg: #e7eef8;
+  --color-muted: #93a0b5;
+  --color-line: #243044;
+  --color-gold: #e4b15a;
+  --color-gold-2: #f3d7a1;
+  --color-win: #3ddc97;
+  --color-loss: #ff5d73;
+  --color-player-1: #47e0d0;
+  --color-player-2: #6cb6ff;
+  --color-player-3: #ff8a5b;
+  --color-player-4: #d18bff;
+  --color-player-5: #f0d27a;
+}
+
+@layer base {
+  html {
+    background-color: var(--color-bg);
+    color: var(--color-fg);
+  }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: var(--font-sans);
+    background:
+      radial-gradient(1200px 500px at 10% -10%, color-mix(in oklab, var(--color-gold) 12%, transparent), transparent 55%),
+      var(--color-bg);
+    color: var(--color-fg);
+  }
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-gold);
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  .btn {
+    display: inline-flex;
+    min-height: 2.75rem;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 0.85rem;
+    border: 1px solid transparent;
+    padding: 0.55rem 1.15rem;
+    font-size: 0.92rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    transition: transform 160ms ease, background-color 160ms ease, border-color 160ms ease;
+  }
+  .btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+  }
+  .btn-primary {
+    background: var(--color-gold);
+    color: var(--color-bg);
+  }
+  .btn-primary:not(:disabled):hover {
+    background: var(--color-gold-2);
+    transform: translateY(-1px);
+  }
+  .btn-ghost {
+    border-color: var(--color-line);
+    background: var(--color-surface);
+    color: var(--color-fg);
+  }
+  .btn-ghost:not(:disabled):hover {
+    border-color: color-mix(in oklab, var(--color-gold) 55%, var(--color-line));
+  }
+  .btn-danger {
+    border-color: color-mix(in oklab, var(--color-loss) 45%, var(--color-line));
+    background: color-mix(in oklab, var(--color-loss) 12%, var(--color-surface));
+    color: var(--color-loss);
+  }
+  .btn-danger:not(:disabled):hover {
+    background: color-mix(in oklab, var(--color-loss) 22%, var(--color-surface));
+  }
+  .panel {
+    border: 1px solid var(--color-line);
+    background: color-mix(in oklab, var(--color-surface) 92%, black);
+    border-radius: 1.15rem;
+  }
+  .field {
+    width: 100%;
+    min-height: 2.75rem;
+    border-radius: 0.8rem;
+    border: 1px solid var(--color-line);
+    background: var(--color-bg);
+    color: var(--color-fg);
+    padding: 0.55rem 0.85rem;
+    font: inherit;
+    transition: border-color 150ms ease;
+  }
+  .field:focus {
+    border-color: var(--color-gold);
+    outline: none;
+  }
+  .field:disabled {
+    opacity: 0.6;
+  }
+  .nav-link {
+    display: inline-flex;
+    min-height: 2.5rem;
+    align-items: center;
+    border-radius: 0.75rem;
+    padding: 0 0.85rem;
+    color: var(--color-muted);
+    font-size: 0.92rem;
+    font-weight: 550;
+    transition: all 150ms ease;
+  }
+  .nav-link:hover {
+    color: var(--color-fg);
+  }
+  .nav-link[data-active="true"] {
+    background: var(--color-surface-2);
+    color: var(--color-fg);
+  }
+}
+
+.chart-grid line {
+  stroke: var(--color-line);
+  stroke-width: 1;
+}
+
+.bala-rise {
+  animation: bala-rise 1.15s ease-in forwards;
+}
+
+.bala-pop {
+  animation: bala-pop 0.55s ease-out both;
+}
+
+.count-pop {
+  animation: count-pop 0.35s ease-out;
+}
+
+.lolli-glow {
+  animation: lolli-glow 1.4s ease-in-out 2;
+}
+
+@keyframes bala-rise {
+  0% { transform: translateY(8px) scale(1); opacity: 1; }
+  100% { transform: translateY(-84px) scale(0.55); opacity: 0; }
+}
+
+@keyframes bala-pop {
+  0% { transform: scale(0.5); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes count-pop {
+  0% { transform: scale(1.35); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes lolli-glow {
+  0%, 100% { box-shadow: 0 0 0 0 transparent; }
+  50% { box-shadow: 0 0 28px 2px color-mix(in oklab, var(--color-gold) 70%, transparent); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bala-rise,
+  .bala-pop,
+  .count-pop,
+  .lolli-glow {
+    animation: none;
+  }
+}

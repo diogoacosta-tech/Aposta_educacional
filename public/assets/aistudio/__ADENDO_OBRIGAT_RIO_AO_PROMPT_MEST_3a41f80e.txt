@@ -1,0 +1,83 @@
+# ADENDO OBRIGATÓRIO AO PROMPT MESTRE — BALABET
+## Tecnologias, arquitetura e integração
+
+### 1. Tecnologias do projeto
+
+A BalaBet deve ser desenvolvida utilizando as tecnologias web e de programação compatíveis com o projeto escolar: **Java, PHP, HTML e CSS**, individualmente ou em conjunto, conforme os requisitos técnicos existentes.
+
+Não substituir essas tecnologias por uma solução completamente diferente sem autorização.
+
+Antes de começar a implementação, examine a estrutura dos arquivos existentes e identifique se o projeto já utiliza Java, PHP, HTML, CSS, banco de dados ou outras dependências.
+
+### 2. Responsabilidade de cada tecnologia
+
+- **HTML:** construir a estrutura semântica das páginas, os formulários de cadastro, os controles das apostas, a área do gráfico, a tabela estatística, o ranking e os quadrinhos de resultados.
+- **CSS:** implementar a identidade visual escura e profissional, os layouts responsivos, as cores das linhas, os estados dos componentes e as animações de vitória, derrota, empate e pirulito raro.
+- **PHP:** quando utilizado como backend web, processar requisições, validar informações recebidas, gerenciar as operações da aplicação e conectar-se ao banco de dados quando necessário.
+- **Java:** quando utilizado como backend ou módulo de lógica, implementar as responsabilidades definidas na arquitetura do projeto, como regras de negócio, processamento de resultados e gerenciamento de dados.
+
+O código deverá ser organizado em módulos com responsabilidades claras. Não misturar indiscriminadamente a lógica de negócio, a estrutura visual e as regras de apresentação.
+
+### 3. Integração entre Java e PHP
+
+Java e PHP não devem ser usados simultaneamente como backends independentes sem uma justificativa técnica.
+
+Se o projeto escolar exigir todas as quatro tecnologias, implemente uma integração real entre Java e PHP, definindo claramente qual componente será responsável por cada operação e como eles trocarão informações.
+
+A comunicação deverá utilizar uma interface bem definida e compatível com o ambiente disponível, como uma API HTTP local, se apropriado. Não inventar endpoints, serviços ou conexões que não existam.
+
+Se o projeto exigir apenas uma das tecnologias de backend, utilize a opção apropriada e mantenha HTML e CSS na interface. Não adicionar complexidade desnecessária.
+
+### 4. Regras da BalaBet que devem funcionar na arquitetura escolhida
+
+Independentemente da combinação tecnológica utilizada, a aplicação deve implementar corretamente:
+
+- Cadastro de até cinco jogadores e saldos individuais.
+- Apostas individuais com mínimo de uma bala.
+- Modos SUBIR, CAIR e AUTOMÁTICO.
+- Bloqueio das apostas durante cada rodada.
+- Contagem regressiva de três segundos e gráfico em movimento durante quinze segundos.
+- Determinação dos resultados pelo último segmento real de cada linha.
+- Cálculo dos saldos, prêmios, vitórias, derrotas e empates.
+- Sorteio independente do prêmio em balas e do pirulito raro.
+- Exibição simultânea dos quadrinhos de resultados.
+- Botão SAIR para voltar à tela do gráfico após a primeira e a segunda rodada.
+- Possibilidade de modificar as apostas antes de clicar em COMEÇAR RODADA novamente.
+- Exibição do ranking final depois da terceira rodada.
+- Reset completo da disputa, com confirmação.
+
+Toda operação deverá possuir uma única fonte de verdade para os dados. Não permitir que o frontend, PHP e Java calculem resultados diferentes para a mesma rodada.
+
+### 5. Persistência e banco de dados
+
+Examine se o projeto já possui banco de dados. Se houver, preserve a estrutura válida e adapte-a conforme necessário.
+
+Se for necessária persistência, defina a estrutura apropriada para jogadores, saldos, apostas e resultados. A implementação deve impedir duplicações de transações, saldos negativos e inconsistências entre rodadas.
+
+Se a aplicação utilizar apenas armazenamento local ou memória durante a simulação, documente essa limitação. Não afirmar que os dados são persistentes ou compartilhados entre dispositivos se isso não estiver implementado.
+
+O reset deve limpar os dados da disputa conforme as regras da BalaBet, sem apagar os arquivos do projeto ou as configurações permanentes.
+
+### 6. Execução e entrega
+
+O projeto deverá conter os arquivos reais necessários à sua execução, incluindo os arquivos Java, PHP, HTML e CSS que forem utilizados.
+
+Forneça instruções específicas para o ambiente escolhido, indicando:
+
+- Como compilar e executar o Java, se utilizado.
+- Como configurar e executar o PHP, se utilizado.
+- Como abrir ou servir as páginas HTML.
+- Como carregar os estilos CSS.
+- Como configurar e iniciar o banco de dados, caso exista.
+- Como iniciar os componentes e verificar a comunicação entre eles.
+- Como testar o cadastro, as três rodadas, os resultados, os saldos e o reset.
+
+Não entregar arquivos vazios apenas para declarar que uma tecnologia foi utilizada. Cada componente incluído deve ter uma função real.
+
+Se encontrar incompatibilidade no ambiente, explique o problema e indique uma solução concreta antes de substituir a arquitetura prevista.
+
+### 7. Critério de aceitação técnico
+
+A BalaBet só será considerada tecnicamente concluída quando a combinação de tecnologias escolhida estiver funcionando, a interface estiver conectada à lógica de negócio e as regras da disputa forem executadas sem inconsistências.
+
+Preserve as funcionalidades descritas no Prompt Mestre original. Este adendo complementa os requisitos de desenvolvimento e não substitui nenhuma das regras funcionais, visuais ou operacionais já definidas.

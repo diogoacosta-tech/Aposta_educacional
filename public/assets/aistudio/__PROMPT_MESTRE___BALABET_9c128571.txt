@@ -1,0 +1,890 @@
+# PROMPT MESTRE — BALABET
+## Especificação completa de desenvolvimento de software
+
+### 1. PAPEL E MISSÃO
+
+Atue como engenheiro de software sênior, arquiteto de sistemas, desenvolvedor full-stack, engenheiro de prompts e designer de interfaces especializado em aplicações web interativas.
+
+Desenvolva a **BalaBet**, uma plataforma de simulação de apostas com balas virtuais, gráficos animados, múltiplos participantes, saldos individuais, apostas independentes, resultados, estatísticas, ranking e um brinde virtual raro.
+
+O objetivo não é criar somente uma demonstração visual. É construir uma aplicação funcional, com interface, lógica de negócio, temporizadores, gráficos, animações, validações e cálculos integrados.
+
+Todas as regras deste documento são requisitos do projeto. Não remova funcionalidades, não invente regras conflitantes e não substitua o comportamento solicitado por uma versão simplificada.
+
+Prioridades:
+
+1. Correção das regras de negócio e dos cálculos.
+2. Funcionamento correto das três rodadas.
+3. Integridade dos saldos e das apostas.
+4. Gráfico animado e resultados individuais.
+5. Interface profissional e responsiva.
+6. Código organizado, testável e fácil de manter.
+
+Se existir um projeto iniciado, examine os arquivos, identifique a tecnologia e preserve as funcionalidades válidas. Se o projeto começar do zero, escolha uma arquitetura adequada e explique as decisões técnicas relevantes.
+
+Não declare uma funcionalidade como concluída se ela não estiver realmente implementada.
+
+---
+
+### 2. CONCEITO DA BALABET
+
+A BalaBet utiliza exclusivamente balas virtuais, sem dinheiro real, pagamentos, depósitos ou saques.
+
+As balas são unidades virtuais utilizadas nas apostas simuladas. O pirulito é um brinde raro, separado das balas, que não pode ser apostado nem comprado com elas.
+
+A aparência deve lembrar uma plataforma moderna de trading, com gráficos de linhas em movimento, cores distintas por participante, informações organizadas e resultados animados.
+
+A aplicação deve ter navegação funcional, interface consistente e atualizações em tempo real durante a simulação.
+
+### 3. PÁGINAS E NAVEGAÇÃO
+
+Implemente quatro áreas principais.
+
+**3.1. Início**
+
+Apresente a BalaBet e explique que é uma simulação utilizando exclusivamente balas virtuais. Inclua um acesso claro à área de apostas e uma apresentação da dinâmica das três rodadas.
+
+**3.2. Apostar**
+
+Deve ser a área principal, contendo:
+
+- Cadastro de até cinco participantes.
+- Configuração do saldo inicial individual.
+- Área para cada jogador configurar sua aposta.
+- Seleção entre SUBIR, CAIR e AUTOMÁTICO.
+- Botão para começar cada rodada.
+- Gráfico com as linhas dos jogadores.
+- Legenda com nomes e cores.
+- Contagem regressiva de 3 segundos.
+- Movimento do gráfico durante 15 segundos.
+- Temporizador visível.
+- Tabela estatística.
+- Resultados em quadrinhos.
+- Botão SAIR para fechar os resultados.
+- Controle de reset disponível em qualquer fase.
+
+**3.3. TOP**
+
+Mostre o ranking dos jogadores, ordenado pela porcentagem de sucesso, com as estatísticas correspondentes.
+
+**3.4. Como jogar**
+
+Explique as regras, apostas, prêmios, empates, estatísticas, probabilidades, pirulito raro e funcionamento das três rodadas.
+
+Inclua um aviso responsável: a BalaBet utiliza balas virtuais sem valor monetário, e apostas com dinheiro real podem causar perdas financeiras e problemas pessoais ou familiares. Incentive a diversão consciente e desaconselhe apostar dinheiro destinado às necessidades essenciais ou tentar recuperar perdas.
+
+---
+
+### 4. DESIGN E IDENTIDADE VISUAL
+
+Crie uma interface moderna, elegante e profissional.
+
+**Paleta visual:**
+
+- Fundo preto ou azul-marinho muito escuro.
+- Painéis escuros com pequenas variações de tonalidade.
+- Grade discreta no gráfico.
+- Linhas em cores diferentes e bem distinguíveis.
+- Verde ou ciano para estados positivos.
+- Vermelho ou rosa-avermelhado para derrotas.
+- Amarelo ou dourado para empates destacados e brindes raros.
+- Textos principais claros e textos auxiliares em cinza.
+
+Use tipografia legível, espaçamentos consistentes, bordas sutis e brilhos moderados. Evite excesso de neon, poluição visual e elementos desalinhados.
+
+A interface deve ser responsiva para computadores e dispositivos móveis.
+
+Todos os botões devem ter funções reais. Os estados de erro, carregamento, confirmação e conclusão precisam possuir feedback visual apropriado.
+
+Não exiba dados fictícios como se fossem resultados reais.
+
+---
+
+### 5. CADASTRO DOS JOGADORES
+
+O limite é de **cinco jogadores por disputa**.
+
+Cada jogador deverá ter:
+
+- Nome único.
+- Saldo inicial individual.
+- Saldo disponível atualizado.
+- Cor própria no gráfico.
+- Modo de aposta.
+- Quantidade apostada na rodada atual.
+- Quantidade de vitórias.
+- Quantidade de derrotas.
+- Quantidade de empates, se utilizada nas estatísticas auxiliares.
+- Porcentagem de sucesso.
+- Histórico de resultados da disputa atual.
+
+O responsável adiciona cada jogador e define o saldo inicial individualmente.
+
+Exemplo:
+
+| Jogador | Saldo inicial |
+|---|---:|
+| João | 10 balas |
+| Maria | 20 balas |
+| Pedro | 8 balas |
+
+Esses valores são apenas exemplos. Os valores efetivos serão informados durante o cadastro.
+
+**Validações obrigatórias:**
+
+- Não permitir nomes vazios.
+- Não permitir nomes duplicados, desconsiderando diferenças entre maiúsculas e minúsculas e espaços extras.
+- Não permitir mais de cinco jogadores.
+- Exigir saldo inicial válido de pelo menos uma bala.
+- Aceitar somente números inteiros positivos para saldos e apostas.
+- Exibir mensagens claras de validação.
+- Impedir o início da disputa sem pelo menos um jogador válido.
+
+Depois que uma disputa começar, não será possível adicionar ou remover participantes. Para cadastrar novos jogadores, será necessário resetar a disputa.
+
+Os jogadores poderão alterar suas apostas individuais entre as rodadas, conforme a seção 9.
+
+---
+
+### 6. SALDOS E REGRAS DE APOSTA
+
+Cada jogador possui um saldo individual e independente.
+
+A aposta mínima é de **1 bala**, e a máxima corresponde ao saldo disponível do jogador.
+
+É proibido:
+
+- Apostar zero balas.
+- Apostar valores negativos ou decimais.
+- Apostar mais balas do que o saldo disponível.
+- Gerar saldo negativo.
+- Processar a mesma aposta duas vezes.
+
+Exemplo: se um jogador possui 8 balas, pode apostar de 1 a 8 balas.
+
+O sistema deve reservar ou descontar internamente a quantidade comprometida na aposta e impedir que o mesmo saldo seja utilizado indevidamente em outra transação.
+
+#### 6.1. Vitória
+
+Quando o jogador vence, a aposta original é devolvida integralmente e ele recebe um prêmio adicional de balas.
+
+Exemplo:
+
+- Saldo inicial: 2 balas.
+- Aposta: 1 bala.
+- Prêmio adicional: 3 balas.
+- Saldo final: 5 balas.
+
+O prêmio é adicional à aposta devolvida.
+
+#### 6.2. Derrota
+
+O jogador perde somente a quantidade apostada.
+
+Exemplos:
+
+- Saldo de 10 balas, aposta de 1: saldo final de 9.
+- Saldo de 2 balas, aposta de 2: saldo final de 0.
+
+Nenhuma outra bala poderá ser descontada.
+
+#### 6.3. Empate
+
+A aposta é devolvida integralmente. O jogador não recebe prêmio adicional nem pirulito.
+
+#### 6.4. Integridade dos saldos
+
+As operações devem ser processadas de maneira consistente e exatamente uma vez. Não permita prêmios duplicados, descontos duplicados ou devoluções repetidas.
+
+Os detalhes contábeis devem ser controlados internamente. A interface apresenta a mensagem de resultado e a quantidade de balas efetivamente ganhas ou perdidas, sem confundir o prêmio com a devolução da aposta.
+
+---
+
+### 7. MODOS DE APOSTA
+
+Cada jogador escolhe individualmente um dos três modos.
+
+**SUBIR**
+
+- Último segmento ascendente: vitória.
+- Último segmento descendente: derrota.
+- Nenhum movimento no último segmento: empate.
+
+**CAIR**
+
+- Último segmento descendente: vitória.
+- Último segmento ascendente: derrota.
+- Nenhum movimento no último segmento: empate.
+
+**AUTOMÁTICO**
+
+O jogador não escolhe explicitamente uma direção. O resultado depende da direção do último segmento da sua própria linha.
+
+- Último segmento ascendente: vitória.
+- Último segmento descendente: derrota.
+- Nenhum movimento no último segmento: empate.
+
+O modo AUTOMÁTICO possui exatamente as mesmas regras e os mesmos prêmios dos outros modos. Não concede vantagens adicionais.
+
+O sistema não deve modificar o modo selecionado pelo jogador depois que a rodada começar.
+
+---
+
+### 8. GRÁFICO E MOVIMENTAÇÃO
+
+O gráfico deve ser funcional e constituir uma das principais atrações visuais da BalaBet.
+
+#### 8.1. Estilo do gráfico
+
+- Utilizar linhas contínuas.
+- Não utilizar candlesticks ou velas.
+- Construir a geometria a partir de segmentos retos e angulados.
+- Produzir oscilações rápidas, mudanças de direção e quedas acentuadas.
+- Evitar curvas arredondadas artificiais como formato predominante.
+- Aplicar animações suaves sem transformar os segmentos em curvas.
+- Usar fundo escuro, grade discreta e brilho moderado.
+
+Cada jogador deve possuir sua própria linha, com cor exclusiva e legenda correspondente.
+
+Os movimentos das linhas devem ser independentes. Cada jogador terá seu próprio resultado baseado no último segmento de sua linha.
+
+O nome do jogador fica na legenda, nunca permanentemente preso ao ponto móvel da linha.
+
+Ao passar o cursor sobre uma linha, destacá-la levemente e reduzir a intensidade visual das demais, sem escondê-las. Esse efeito visual não poderá modificar os cálculos.
+
+#### 8.2. Eixo vertical
+
+Exibir as marcações:
+
+- 0%
+- 10%
+- 30%
+- 50%
+- 80%
+- 100%
+
+Esses valores representam a posição relativa dentro do gráfico, não a porcentagem de sucesso do participante.
+
+#### 8.3. Aleatoriedade
+
+Gerar os movimentos por um mecanismo de simulação aleatória que permita oscilações variadas, sem padrões fixos e repetitivos.
+
+O tamanho do prêmio não depende da intensidade do gráfico, da altura da linha ou da quantidade apostada. O prêmio será sorteado independentemente.
+
+No final dos 15 segundos, avaliar a direção do último segmento visível:
+
+- Deslocamento para cima: ascendente.
+- Deslocamento para baixo: descendente.
+- Ausência de deslocamento: empate.
+
+Mesmo um deslocamento descendente mínimo conta como queda. Um deslocamento ascendente mínimo conta como subida.
+
+O resultado deve utilizar o estado real do gráfico no momento do encerramento, sem avaliar movimentos futuros que ainda não tenham aparecido.
+
+#### 8.4. Congelamento
+
+Quando os 15 segundos terminarem:
+
+1. Interromper os movimentos.
+2. Congelar as linhas na posição final exata.
+3. Impedir novas atualizações do gráfico.
+4. Processar os resultados uma única vez.
+5. Atualizar saldos e estatísticas.
+6. Exibir os quadrinhos dos resultados.
+
+O gráfico permanecerá congelado até que o usuário feche o painel de resultados e retorne à preparação da rodada seguinte, ou até que o reset seja confirmado.
+
+---
+
+### 9. CICLO DAS TRÊS RODADAS E CONFIGURAÇÃO DAS APOSTAS
+
+Esta seção é uma das regras mais importantes da BalaBet.
+
+Cada disputa possui **exatamente três rodadas**.
+
+Os jogadores podem escolher ou modificar a própria aposta antes de cada uma das três rodadas. A aposta de uma rodada não será automaticamente mantida como uma obrigação para as rodadas seguintes.
+
+O fluxo deve funcionar da seguinte maneira:
+
+#### 9.1. Primeira rodada
+
+1. O responsável cadastra todos os jogadores e define os saldos iniciais.
+2. Na tela do gráfico, cada jogador configura a quantidade de balas que deseja apostar e seleciona SUBIR, CAIR ou AUTOMÁTICO.
+3. O sistema valida todas as apostas.
+4. O responsável clica em **COMEÇAR RODADA**.
+5. As apostas são bloqueadas.
+6. Começa a contagem regressiva de 3 segundos.
+7. Ao terminar a contagem, o gráfico se movimenta durante 15 segundos.
+8. O gráfico congela e o sistema calcula os resultados.
+9. Aparecem os quadrinhos de resultados de todos os jogadores.
+
+#### 9.2. Depois dos resultados da primeira rodada
+
+Os quadrinhos ficam visíveis até que o responsável clique em **SAIR**.
+
+Quando clicar em SAIR:
+
+1. Fechar os quadrinhos.
+2. Voltar à tela do gráfico.
+3. Restaurar o gráfico para a posição inicial.
+4. Preparar a segunda rodada.
+5. Liberar a configuração das apostas seguintes.
+
+**A segunda rodada não começa automaticamente.**
+
+Os jogadores poderão modificar tanto a quantidade de balas quanto o modo de aposta, respeitando o saldo disponível atualizado depois da primeira rodada.
+
+Depois que as novas apostas estiverem configuradas, o responsável deverá clicar novamente em **COMEÇAR RODADA**.
+
+Somente nesse momento a segunda rodada será iniciada, com nova contagem regressiva de 3 segundos e movimento de 15 segundos.
+
+#### 9.3. Depois dos resultados da segunda rodada
+
+Aplicar exatamente o mesmo processo:
+
+1. Mostrar os quadrinhos de todos os jogadores simultaneamente.
+2. Esperar o responsável clicar em SAIR.
+3. Fechar o painel de resultados.
+4. Retornar ao gráfico na posição inicial.
+5. Liberar a edição da quantidade e do modo de aposta.
+6. Permitir que os jogadores preparem suas apostas para a terceira rodada.
+7. Aguardar o clique em COMEÇAR RODADA.
+
+Depois desse clique, bloquear as apostas e executar os 3 segundos de contagem regressiva e os 15 segundos do gráfico.
+
+#### 9.4. Depois dos resultados da terceira rodada
+
+Mostrar os quadrinhos de resultados da terceira rodada e mantê-los visíveis até o clique em SAIR.
+
+Quando o responsável clicar em SAIR:
+
+1. Fechar os quadrinhos.
+2. Mostrar o ranking final da disputa.
+3. Manter o gráfico congelado no estado final da terceira rodada.
+4. Reconhecer que as três rodadas foram concluídas.
+5. Desabilitar a possibilidade de iniciar uma quarta rodada.
+6. Aguardar que o responsável escolha RESETAR TODOS OS DADOS para preparar uma disputa nova.
+
+A terceira rodada não poderá reiniciar automaticamente, nem mesmo ao fechar o painel de resultados.
+
+#### 9.5. Regras gerais do fluxo
+
+- Há um total fixo de três rodadas por disputa.
+- O usuário controla o início de cada rodada pelo botão COMEÇAR RODADA.
+- O botão SAIR fecha os resultados e leva à etapa seguinte apropriada.
+- O clique em SAIR após a primeira ou segunda rodada não inicia a próxima rodada por conta própria.
+- Depois de SAIR na primeira e na segunda rodada, os participantes podem mudar suas apostas.
+- O botão COMEÇAR RODADA fica disponível somente depois que as apostas estiverem válidas.
+- Quando a rodada começa, o modo e a quantidade apostada ficam bloqueados.
+- Os resultados anteriores nunca podem ser modificados por apostas de rodadas posteriores.
+- O contador nunca pode ultrapassar a terceira rodada.
+- Não iniciar uma nova rodada automaticamente por meio de temporizadores ocultos.
+- O reset continua disponível em todas as fases.
+
+O sistema deve exibir claramente o estado atual, por exemplo: “PREPARANDO RODADA 2/3”, “RODADA 2/3 EM ANDAMENTO” ou “DISPUTA FINALIZADA”.
+
+---
+
+### 10. PROBABILIDADES DOS PRÊMIOS EM BALAS
+
+Toda vitória gera um sorteio independente para determinar o prêmio adicional de balas.
+
+Os pesos originais definidos para os prêmios de 1 a 5 balas são 28, 28, 22, 11 e 6. Como a soma é 95, utilizar a distribuição normalizada proporcionalmente.
+
+| Prêmio adicional | Probabilidade normalizada |
+|---|---:|
+| 1 bala | 29,47% |
+| 2 balas | 29,47% |
+| 3 balas | 23,16% |
+| 4 balas | 11,58% |
+| 5 balas | 6,32% |
+| **Total** | **100%** |
+
+Para evitar distorções causadas pelo arredondamento das porcentagens, implementar o sorteio com os pesos inteiros 28, 28, 22, 11 e 6, cuja soma é 95.
+
+O prêmio adicional máximo é de 5 balas por vitória.
+
+O sorteio do prêmio não deve depender do movimento do gráfico, do saldo ou da quantidade apostada.
+
+Condições:
+
+- Vitória: sortear o prêmio adicional.
+- Derrota: não conceder prêmio.
+- Empate: devolver a aposta sem prêmio adicional.
+
+O prêmio em balas deve ser sorteado independentemente do pirulito raro.
+
+---
+
+### 11. PIRULITO RARO
+
+O pirulito é um brinde virtual raro, não uma moeda de aposta.
+
+Regras:
+
+- Não pode ser apostado.
+- Não pode ser comprado com balas.
+- Não substitui o prêmio em balas.
+- Só pode ser recebido após uma vitória.
+- Nunca deve ser concedido em derrotas ou empates.
+- Deve possuir chance independente de 5% por vitória.
+- A chance de não receber o pirulito é de 95% por vitória.
+
+A cada vitória, executar dois sorteios separados:
+
+1. Sorteio da quantidade de balas do prêmio.
+2. Sorteio do pirulito raro.
+
+O jogador pode ganhar balas sem ganhar pirulito, ou receber os dois. A ausência de pirulito não modifica o prêmio em balas.
+
+Quando houver pirulito, exibir uma animação exclusiva de brinde raro, com destaque visual, brilho moderado e preservação da mensagem de vitória.
+
+Permitir personalizar a imagem da bala e a arte do pirulito, se possível na arquitetura utilizada. A personalização deve afetar somente a aparência.
+
+---
+
+### 12. QUADRINHOS DE RESULTADOS
+
+Quando uma rodada terminar, apresentar uma tela ou painel com um quadrinho individual para cada jogador, com no máximo cinco quadrinhos.
+
+**Todos os quadrinhos devem aparecer ao mesmo tempo.**
+
+Todas as animações individuais devem começar simultaneamente. Não esperar a animação de um jogador terminar para iniciar a de outro.
+
+A grade deve adaptar-se à quantidade de jogadores, mantendo espaçamento e legibilidade. Com cinco participantes, distribuir os quadrinhos sem cortar ou comprimir excessivamente o conteúdo.
+
+Cada quadrinho deve exibir:
+
+- Nome do jogador.
+- Modo de aposta utilizado.
+- Condição final.
+- Quantidade de balas ganhas, perdidas ou aposta devolvida.
+- Animação de vitória, derrota ou empate.
+- Pirulito raro, quando concedido.
+
+#### Vitória
+
+Mostrar **VOCÊ GANHOU!**, a quantidade de balas do prêmio adicional e uma animação positiva.
+
+A devolução da aposta deve ser processada internamente e não confundida com o prêmio anunciado.
+
+Se o jogador receber o pirulito raro, apresentar também a animação especial.
+
+#### Derrota
+
+Mostrar **VOCÊ PERDEU!**, com a quantidade de balas efetivamente perdida.
+
+Animar os ícones de bala subindo e desaparecendo. O número de ícones deve ser igual à quantidade de balas perdidas.
+
+Não mostrar sempre cinco ícones: se a perda for de 1 bala, mostrar 1; se for de 4, mostrar 4.
+
+#### Empate
+
+Mostrar **EMPATE!**, informar que a aposta foi devolvida e não exibir animação de vitória ou derrota.
+
+Não conceder pirulito.
+
+#### Permanência dos resultados
+
+Os quadrinhos não devem desaparecer automaticamente.
+
+Depois que as animações terminarem, o painel deverá permanecer aberto até que o responsável clique em **SAIR**.
+
+O reset poderá ser acionado mesmo enquanto o painel estiver aberto.
+
+O processamento dos resultados deve ocorrer de forma independente das animações e exatamente uma vez. Interromper uma animação não pode cancelar nem duplicar as transações já registradas.
+
+---
+
+### 13. TABELA ESTATÍSTICA
+
+Abaixo do gráfico, apresentar uma tabela dinâmica com os jogadores cadastrados.
+
+Colunas obrigatórias:
+
+- Nome.
+- Vitórias.
+- Derrotas.
+- Porcentagem de sucesso.
+
+A tabela deve utilizar os dados reais da disputa e ser atualizada depois da liquidação de cada rodada.
+
+A porcentagem deve ser calculada por:
+
+**Porcentagem de sucesso = vitórias ÷ (vitórias + derrotas) × 100.**
+
+Empates não entram nesse cálculo.
+
+Se um jogador ainda não tiver vitórias nem derrotas, mostrar “—”.
+
+Os cálculos devem manter precisão interna e utilizar uma formatação legível na interface.
+
+Não atualizar estatísticas duas vezes pelo mesmo resultado.
+
+---
+
+### 14. TOP E RANKING
+
+A página TOP deve exibir a classificação dos participantes, ordenada pela maior porcentagem de sucesso.
+
+Exibir:
+
+- Posição.
+- Nome.
+- Vitórias.
+- Derrotas.
+- Porcentagem de sucesso.
+
+O ranking deve usar a mesma fonte de dados e as mesmas estatísticas da tabela da página de apostas.
+
+Não criar critérios automáticos extras para desempatar participantes com a mesma porcentagem de sucesso. Mostrar o empate claramente.
+
+O ranking poderá mostrar a classificação parcial durante a disputa, mas só será considerado final depois da terceira rodada.
+
+Depois do clique em SAIR nos resultados da terceira rodada, apresentar o ranking final e impedir novas rodadas.
+
+---
+
+### 15. RESETAR TODOS OS DADOS
+
+O botão **RESETAR TODOS OS DADOS** deve estar acessível em todas as fases:
+
+- Cadastro.
+- Preparação de apostas.
+- Contagem regressiva.
+- Gráfico em movimento.
+- Resultados.
+- Ranking final.
+
+Antes de efetuar o reset, exibir uma caixa de confirmação que informe claramente que todos os dados da disputa serão apagados.
+
+Se o responsável cancelar, preservar integralmente o estado atual.
+
+Se confirmar, interromper a disputa e limpar:
+
+- Nomes dos jogadores.
+- Saldos iniciais e atuais.
+- Apostas e valores reservados.
+- Vitórias, derrotas e empates.
+- Porcentagens de sucesso.
+- Ranking.
+- Histórico das três rodadas.
+- Resultados exibidos.
+- Contador de rodadas.
+- Estado e posições das linhas do gráfico.
+- Temporizadores e animações ativas.
+- Dados temporários dos sorteios de balas e pirulito.
+- Qualquer outro dado específico da disputa atual.
+
+Após o reset, retornar automaticamente à tela inicial de cadastro.
+
+O responsável deverá cadastrar novamente os jogadores e informar o saldo inicial individual de cada um.
+
+Não manter informações antigas da disputa anterior. O novo jogo deve começar do zero.
+
+O reset não deve apagar o código, arquivos do projeto, configurações permanentes ou imagens personalizadas.
+
+Garantir que nenhum gráfico ou temporizador continue funcionando em segundo plano depois do reset.
+
+---
+
+### 16. MÁQUINA DE ESTADOS
+
+Implemente um gerenciamento centralizado e explícito dos estados da aplicação.
+
+Estados mínimos:
+
+**A. Cadastro:** permite cadastrar jogadores e saldos.
+
+**B. Preparação da rodada:** permite configurar o modo e a quantidade da aposta de cada jogador.
+
+**C. Contagem regressiva:** apostas bloqueadas e contador de 3 segundos.
+
+**D. Rodada em andamento:** gráfico em movimento por 15 segundos e apostas bloqueadas.
+
+**E. Resultados:** gráfico congelado, resultados processados e quadrinhos visíveis.
+
+**F. Preparação da rodada seguinte:** após SAIR na primeira ou segunda rodada, retorna ao gráfico inicial, libera as apostas e aguarda configuração e clique em COMEÇAR RODADA.
+
+**G. Ranking final:** após SAIR na terceira rodada, apresenta a classificação final e impede uma quarta rodada.
+
+**H. Reset:** interrompe o fluxo e, se confirmado, apaga todos os dados da disputa.
+
+Não permitir estados incompatíveis simultaneamente. Por exemplo, não iniciar um gráfico enquanto o painel de resultados ainda estiver aberto.
+
+Utilizar identificadores únicos de rodada ou mecanismos equivalentes para garantir que cada resultado seja liquidado uma única vez.
+
+O temporizador deve se basear no tempo decorrido, não somente na quantidade de quadros da animação. Uma queda no desempenho visual não pode prolongar indevidamente uma rodada.
+
+O reset deve cancelar temporizadores, eventos e animações pendentes.
+
+---
+
+### 17. PREPARAÇÃO E BLOQUEIO DAS APOSTAS
+
+Cada rodada possui um conjunto próprio de apostas.
+
+Antes da primeira rodada, os jogadores configuram suas apostas iniciais.
+
+Depois dos resultados da primeira rodada, o painel permanece aberto até SAIR. Após SAIR, as apostas voltam a ficar editáveis.
+
+O mesmo comportamento vale depois da segunda rodada.
+
+A quantidade apostada e o modo da rodada anterior não devem ficar bloqueados para as rodadas seguintes. Os jogadores podem modificá-los livremente antes de clicar em COMEÇAR RODADA, respeitando o saldo atual.
+
+Quando COMEÇAR RODADA for acionado:
+
+1. Validar todas as apostas.
+2. Garantir que cada aposta seja de pelo menos 1 bala e não ultrapasse o saldo disponível.
+3. Registrar a configuração individual daquela rodada.
+4. Bloquear modo e quantidade para todos os participantes.
+5. Iniciar a contagem regressiva de 3 segundos.
+6. Iniciar o gráfico durante 15 segundos após a contagem.
+7. Impedir qualquer alteração até a rodada terminar.
+
+Se alguma aposta estiver inválida, não iniciar a rodada e informar o jogador ou responsável sobre o problema.
+
+As apostas de rodadas anteriores não podem ser alteradas retroativamente. Os resultados já liquidados devem permanecer registrados até o reset.
+
+Não exigir que as próximas apostas sejam configuradas antes do fechamento do painel de resultados. A ordem correta é:
+
+**Resultados → SAIR → voltar ao gráfico inicial → alterar apostas → COMEÇAR RODADA → contagem regressiva → gráfico.**
+
+Depois da terceira rodada, esse fluxo não se repete: ao fechar os resultados, a aplicação mostra o ranking final.
+
+---
+
+### 18. REGRAS DE FUNCIONAMENTO E CONFIABILIDADE
+
+A aplicação deverá cumprir as seguintes obrigações técnicas:
+
+1. Todas as telas compartilham a mesma fonte de dados.
+2. Alterações de saldo são refletidas imediatamente.
+3. As estatísticas são baseadas nos resultados efetivamente liquidados.
+4. O gráfico representa os participantes reais.
+5. A legenda utiliza os nomes cadastrados.
+6. Cada jogador possui uma cor consistente.
+7. Todos os botões principais possuem ações funcionais.
+8. Nenhum sucesso é anunciado antes da confirmação da operação.
+9. Nenhuma aposta ou resultado pode ser processado duas vezes.
+10. Cada rodada respeita a sequência definida.
+11. O reset cancela todas as atividades pendentes.
+12. Os estados de erro devem ser claros e recuperáveis quando possível.
+13. O sistema impede saldos negativos e apostas inválidas.
+14. Os prêmios não podem ser duplicados.
+15. A tabela e o ranking não devem conter dados inventados.
+16. As animações não determinam as regras de vitória.
+17. O gráfico e os sorteios de prêmio utilizam mecanismos separados.
+18. O temporizador encerra as rodadas corretamente.
+19. A disputa tem exatamente três rodadas.
+20. A aposta volta a ser editável depois do fechamento dos resultados da primeira e da segunda rodada.
+21. A próxima rodada só começa depois de um novo clique em COMEÇAR RODADA.
+22. A terceira rodada encerra a disputa e impede uma quarta.
+23. O reset funciona durante qualquer fase.
+24. A interface reflete fielmente o estado central do sistema.
+
+Centralize a lógica de apostas, resultados, sorteios, saldos, classificação e controle de rodadas.
+
+---
+
+### 19. CONEXÕES E INTEGRAÇÃO TÉCNICA
+
+Antes de modificar o projeto:
+
+- Examine os arquivos disponíveis.
+- Identifique linguagem, framework e dependências.
+- Verifique os comandos reais de execução.
+- Preserve configurações válidas.
+- Inspecione a implementação atual do gráfico e dos estados.
+- Integre as novas regras sem quebrar funcionalidades existentes.
+
+Se já houver backend, banco de dados ou persistência configurada, avalie a implementação e use-a de forma consistente.
+
+Se não houver backend, implemente a simulação funcional dentro do ambiente existente sem inventar serviços, APIs ou credenciais externas.
+
+Se utilizar armazenamento local, documente o comportamento da persistência e garanta que o reset remova corretamente os dados da disputa atual.
+
+Não afirme que a plataforma permite multiplayer entre diferentes dispositivos, autenticação ou persistência em servidor se essas funções não estiverem realmente implementadas.
+
+---
+
+### 20. EXPERIÊNCIA DO USUÁRIO E ACESSIBILIDADE
+
+Exigir:
+
+- Navegação clara.
+- Botões com nomes objetivos.
+- Confirmação de ações destrutivas.
+- Validação junto aos campos correspondentes.
+- Contraste adequado.
+- Identificação textual dos resultados.
+- Componentes acessíveis por teclado quando aplicável.
+- Formatação consistente de números.
+- Feedback visual para ações concluídas e erros.
+- Interface responsiva.
+- Animações que não prejudiquem a leitura.
+- Compatibilidade com preferências de movimento reduzido, quando viável.
+
+Vitória, derrota e empate não devem ser diferenciados apenas pela cor. Utilizar textos, ícones e cores em conjunto.
+
+---
+
+### 21. CONTEÚDO DA PÁGINA COMO JOGAR
+
+Explicar em português brasileiro:
+
+- Como cadastrar jogadores e definir seus saldos.
+- Como configurar cada aposta individual.
+- Como funciona SUBIR, CAIR e AUTOMÁTICO.
+- Como funciona a contagem de 3 segundos.
+- Como funciona o gráfico por 15 segundos.
+- Como o último segmento define a vitória, derrota ou empate.
+- Como são calculados os saldos.
+- Como é sorteado o prêmio de balas.
+- Como funciona a chance independente de 5% do pirulito.
+- Como aparecem os resultados em quadrinhos.
+- Como funcionam as estatísticas e o ranking.
+- Como alterar apostas depois de cada rodada.
+- Como o botão SAIR e o botão COMEÇAR RODADA interagem.
+- O que acontece após a terceira rodada.
+- Como resetar a disputa.
+
+Explique que o gráfico é uma simulação aleatória e que seus movimentos não garantem resultados futuros.
+
+Reforce que as balas virtuais não possuem valor monetário.
+
+---
+
+### 22. TESTES OBRIGATÓRIOS
+
+Antes de concluir, teste os cenários abaixo.
+
+**Cadastro**
+- Iniciar sem jogadores.
+- Adicionar jogador válido.
+- Rejeitar nome vazio e nome duplicado.
+- Impedir um sexto jogador.
+- Rejeitar saldo inválido.
+- Cadastrar cinco jogadores corretamente.
+
+**Apostas**
+- Apostar 1 bala.
+- Apostar o saldo inteiro.
+- Tentar apostar acima do saldo.
+- Tentar apostar zero ou valor negativo.
+- Testar os três modos.
+- Confirmar bloqueio depois de COMEÇAR RODADA.
+- Confirmar que não há saldo negativo.
+
+**Resultados**
+- Testar vitórias com todos os valores de prêmio.
+- Testar derrotas com apostas variadas.
+- Testar empates.
+- Confirmar que pirulito não é concedido em derrotas nem empates.
+- Confirmar a chance independente do pirulito nas vitórias.
+- Conferir a quantidade de ícones de perda.
+- Confirmar que todos os quadrinhos aparecem simultaneamente.
+- Confirmar que permanecem na tela até SAIR.
+- Confirmar que cada resultado é processado apenas uma vez.
+
+**Fluxo de rodadas**
+- Configurar e iniciar a primeira rodada.
+- Concluir a primeira rodada e verificar a abertura dos resultados.
+- Clicar em SAIR e confirmar o retorno ao gráfico inicial.
+- Alterar a quantidade e o modo das apostas.
+- Confirmar que a segunda rodada só inicia após um novo clique em COMEÇAR RODADA.
+- Repetir o mesmo procedimento entre a segunda e a terceira rodadas.
+- Confirmar que os saldos usados nas novas apostas são os atualizados.
+- Confirmar que não é possível modificar apostas durante a contagem ou o movimento.
+- Depois da terceira rodada, clicar em SAIR e confirmar que aparece o ranking final.
+- Verificar que uma quarta rodada é impossível.
+
+**Temporização e gráfico**
+- Contagem regressiva de 3 segundos.
+- Movimento do gráfico durante 15 segundos.
+- Congelamento no último ponto.
+- Resultado baseado no último segmento real.
+- Ausência de movimento final identificada como empate.
+
+**Estatísticas**
+- Calcular corretamente a porcentagem de sucesso.
+- Excluir empates do cálculo.
+- Mostrar — quando não há vitórias nem derrotas.
+- Ordenar o ranking corretamente.
+- Não criar desempate automático.
+
+**Reset**
+- Testar durante contagem regressiva.
+- Testar durante o gráfico.
+- Testar com quadrinhos abertos.
+- Testar no ranking final.
+- Cancelar e verificar que os dados continuam intactos.
+- Confirmar e verificar que todos os dados da disputa foram eliminados.
+- Confirmar retorno ao cadastro.
+- Confirmar que nenhum temporizador ou gráfico antigo continua ativo.
+
+Corrija os problemas encontrados e execute novamente os testes relevantes. Não afirme que testes passaram sem evidências da execução.
+
+---
+
+### 23. ENTREGÁVEIS
+
+Entregue:
+
+1. Aplicação funcional no projeto existente ou em uma estrutura completa.
+2. Código necessário para executar.
+3. Componentes de interface conectados à lógica real.
+4. Gráfico e temporizadores funcionais.
+5. Cadastro, apostas, saldos e resultados.
+6. Sorteios de balas e pirulito.
+7. Tabela e ranking.
+8. Reset completo.
+9. Tratamento de erros e validações.
+10. Testes implementados ou executados.
+11. Instruções reais para instalar dependências e iniciar a aplicação.
+12. Documentação básica da arquitetura e das limitações encontradas.
+
+Se houver código existente, modifique os arquivos apropriados em vez de entregar somente trechos isolados. Não substitua arquivos importantes por versões simplificadas sem necessidade.
+
+Não invente conexões, testes ou funcionalidades que não estejam implementados.
+
+---
+
+### 24. CRITÉRIOS DE ACEITAÇÃO FINAL
+
+A BalaBet só estará pronta quando apresentar:
+
+- Design escuro, moderno, profissional e responsivo.
+- Limite de cinco jogadores por disputa.
+- Cadastro de nomes únicos e saldos individuais.
+- Apostas individuais de pelo menos uma bala.
+- Modos SUBIR, CAIR e AUTOMÁTICO.
+- Gráfico contínuo com linhas independentes.
+- Contagem de 3 segundos e movimento de 15 segundos.
+- Resultados determinados pelo último segmento real.
+- Cálculo correto de saldos, vitórias, derrotas e empates.
+- Sorteio de balas com distribuição normalizada.
+- Pirulito raro com 5% de chance independente por vitória.
+- Quadrinhos simultâneos e persistentes até SAIR.
+- Estatísticas e ranking corretos.
+- Exatamente três rodadas.
+- Possibilidade de modificar as apostas depois de SAIR na primeira e na segunda rodada.
+- Início da próxima rodada somente depois de clicar em COMEÇAR RODADA.
+- Encerramento final depois da terceira rodada.
+- Reset disponível em qualquer fase.
+- Retorno ao cadastro após reset.
+- Nenhum saldo negativo, aposta inválida ou prêmio duplicado.
+- Nenhum botão principal sem funcionalidade.
+- Instruções de execução e documentação técnica básica.
+
+### 25. INSTRUÇÃO FINAL
+
+Desenvolva a aplicação com base nesta especificação. Não entregue somente um planejamento: implemente o que for possível no ambiente disponível, conecte os componentes à lógica real e teste os fluxos principais.
+
+Se encontrar erros existentes, investigue suas causas antes de substituir partes do projeto.
+
+Caso surja uma dúvida que impeça uma implementação correta, identifique a regra conflitante e faça uma pergunta objetiva, explicando suas consequências. Não invente decisões que alterem regras centrais.
+
+Ao terminar, descreva o que foi efetivamente desenvolvido, quais testes foram realizados, como executar o projeto e quais limitações ainda existem.
+
+**O objetivo é construir uma BalaBet funcional, visualmente profissional, com três rodadas controladas pelo usuário, apostas editáveis entre rodadas, cálculos corretos e resultados consistentes.**

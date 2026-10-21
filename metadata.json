@@ -1,0 +1,8 @@
+{
+  "name": "BalaBet",
+  "description": "Simulação de apostas com balas virtuais, gráficos em tempo real e disputas de 3 rodadas.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
