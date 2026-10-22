@@ -16,9 +16,11 @@ COPY . .
 # Instala dependências JavaScript
 RUN npm install
 
-# Compila o motor Java
+
+# Compila o motor Java usando UTF-8
 RUN mkdir -p school/java/build \
-    && javac -d school/java/build school/java/src/com/balabet/*.java
+    && javac -encoding UTF-8 -d school/java/build school/java/src/com/balabet/*.java
+
 
 # Compila a interface
 RUN npm run build
