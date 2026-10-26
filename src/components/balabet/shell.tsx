@@ -53,7 +53,7 @@ export function AppShell({
                 alt="Logo BalaBet"
                 className="size-9 rounded-full object-cover ring-1 ring-gold/30"
               />
-              <span className="text-xl font-bold tracking-tight text-fg">BalaBet</span>
+              <span className="text-xl font-bold tracking-tight text-fg">Neon Sugar Cassino</span>
             </button>
             <nav className="flex items-center gap-1 overflow-x-auto" aria-label="Navegação Principal">
               {LINKS.map((link) => (
