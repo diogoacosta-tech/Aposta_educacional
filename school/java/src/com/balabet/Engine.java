@@ -6,8 +6,8 @@ package com.balabet;
  * observada no último segmento visível.
  */
 public final class Engine {
-    public static final int[] PRIZE_WEIGHTS = {28, 28, 22, 11, 6};
-    public static final int PRIZE_TOTAL = 95;
+    public static final int[] PRIZE_WEIGHTS = {35, 35, 16, 10, 4};
+    public static final int PRIZE_TOTAL = 100;
 
     private Engine() {}
 
