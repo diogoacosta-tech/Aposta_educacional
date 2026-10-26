@@ -112,59 +112,66 @@ public final class Main {
         System.exit(2);
     }
 
-    private static void selfTest() {
-        int[] counts = new int[6];
-        for (int roll = 0; roll < 95; roll++) {
-            counts[Engine.prizeFromRoll(roll)]++;
-        }
-        expect(counts[1] == 35, "peso 1");
-        expect(counts[2] == 35, "peso 2");
-        expect(counts[3] == 16, "peso 3");
-        expect(counts[4] == 10, "peso 4");
-        expect(counts[5] == 4, "peso 5");
-        expect(Engine.prizeFromRoll(56) == 3, "prêmio 3 no exemplo");
-        for (int roll = 0; roll < 100; roll++) {
-            expect(Engine.lollipopFromRoll(roll) == (roll < 5), "pirulito " + roll);
-        }
-        Engine.Settlement win =
-                Engine.settle(2, 1, Engine.Mode.SUBIR, Engine.Direction.UP, 56, 0);
-        expect(win.outcome == Engine.Outcome.WIN, "vitória");
-        expect(win.prize == 3, "prêmio adicional 3");
-        expect(win.lollipop, "pirulito na vitória");
-        expect(win.balanceAfter == 5, "saldo 2+3");
-        expect(win.displayedDelta == 3, "delta anunciado é o prêmio");
+   
+private static void selfTest() {
+    int[] counts = new int[6];
 
-        Engine.Settlement loss =
-                Engine.settle(10, 1, Engine.Mode.SUBIR, Engine.Direction.DOWN, 0, 0);
-        expect(loss.outcome == Engine.Outcome.LOSS, "derrota");
-        expect(loss.balanceAfter == 9, "10-1");
-        expect(!loss.lollipop, "sem pirulito na derrota");
-        expect(loss.prize == 0, "sem prêmio na derrota");
-
-        Engine.Settlement bust =
-                Engine.settle(2, 2, Engine.Mode.CAIR, Engine.Direction.UP, 0, 0);
-        expect(bust.balanceAfter == 0, "saldo zerado");
-        expect(!bust.lollipop, "sem pirulito ao zerar");
-
-        Engine.Settlement tie =
-                Engine.settle(8, 3, Engine.Mode.AUTOMATICO, Engine.Direction.FLAT, 0, 0);
-        expect(tie.outcome == Engine.Outcome.TIE, "empate");
-        expect(tie.balanceAfter == 8, "aposta devolvida");
-        expect(!tie.lollipop && tie.prize == 0, "empate sem brinde");
-
-        Engine.Settlement auto =
-                Engine.settle(4, 1, Engine.Mode.AUTOMATICO, Engine.Direction.UP, 0, 99);
-        expect(auto.outcome == Engine.Outcome.WIN && auto.prize == 1 && !auto.lollipop, "automático");
-
-        boolean threw = false;
-        try {
-            Engine.settle(3, 4, Engine.Mode.SUBIR, Engine.Direction.UP, 0, 0);
-        } catch (IllegalArgumentException ex) {
-            threw = true;
-        }
-        expect(threw, "recusa aposta acima do saldo");
-        System.out.println("PASS");
+    for (int roll = 0; roll < Engine.PRIZE_TOTAL; roll++) {
+        counts[Engine.prizeFromRoll(roll)]++;
     }
+
+    expect(counts[1] == 35, "peso 1");
+    expect(counts[2] == 35, "peso 2");
+    expect(counts[3] == 16, "peso 3");
+    expect(counts[4] == 10, "peso 4");
+    expect(counts[5] == 4, "peso 5");
+
+    expect(Engine.prizeFromRoll(56) == 2, "prêmio 2 no exemplo");
+
+    for (int roll = 0; roll < 100; roll++) {
+        expect(Engine.lollipopFromRoll(roll) == (roll < 5), "pirulito " + roll);
+    }
+
+    Engine.Settlement win =
+        Engine.settle(2, 1, Engine.Mode.SUBIR, Engine.Direction.UP, 56, 0);
+    expect(win.outcome == Engine.Outcome.WIN, "vitória");
+    expect(win.prize == 2, "prêmio adicional 2");
+    expect(win.lollipop, "pirulito na vitória");
+    expect(win.balanceAfter == 4, "saldo 2+2");
+    expect(win.displayedDelta == 2, "delta anunciado é o prêmio");
+
+    Engine.Settlement loss =
+        Engine.settle(10, 1, Engine.Mode.SUBIR, Engine.Direction.DOWN, 0, 0);
+    expect(loss.outcome == Engine.Outcome.LOSS, "derrota");
+    expect(loss.balanceAfter == 9, "10-1");
+    expect(!loss.lollipop, "sem pirulito na derrota");
+    expect(loss.prize == 0, "sem prêmio na derrota");
+
+    Engine.Settlement bust =
+        Engine.settle(2, 2, Engine.Mode.CAIR, Engine.Direction.UP, 0, 0);
+    expect(bust.balanceAfter == 0, "saldo zerado");
+    expect(!bust.lollipop, "sem pirulito ao zerar");
+
+    Engine.Settlement tie =
+        Engine.settle(8, 3, Engine.Mode.AUTOMATICO, Engine.Direction.FLAT, 0, 0);
+    expect(tie.outcome == Engine.Outcome.TIE, "empate");
+    expect(tie.balanceAfter == 8, "aposta devolvida");
+    expect(!tie.lollipop && tie.prize == 0, "empate sem brinde");
+
+    Engine.Settlement auto =
+        Engine.settle(4, 1, Engine.Mode.AUTOMATICO, Engine.Direction.UP, 0, 99);
+    expect(auto.outcome == Engine.Outcome.WIN && auto.prize == 1 && !auto.lollipop, "automático");
+
+    boolean threw = false;
+    try {
+        Engine.settle(3, 4, Engine.Mode.SUBIR, Engine.Direction.UP, 0, 0);
+    } catch (IllegalArgumentException ex) {
+        threw = true;
+    }
+    expect(threw, "recusa aposta acima do saldo");
+    System.out.println("PASS");
+}
+
 
     private static void expect(boolean condition, String label) {
         if (!condition) {
