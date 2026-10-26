@@ -1276,7 +1276,7 @@ export function ApostarView() {
 
             <div className="flex flex-wrap items-center justify-between gap-2 pt-1 text-[11px] text-muted border-t border-line/40">
               <span>
-                <strong>Pesos dos Prêmios:</strong> 1 bala (29,47%) · 2 balas (29,47%) · 3 balas (23,16%) · 4 balas (11,58%) · 5 balas (6,32%)
+                <strong>Pesos dos Prêmios:</strong> 1 bala (35%) · 2 balas (35%) · 3 balas (16%) · 4 balas (10%) · 5 balas (4%)
               </span>
               <span className="text-gold font-medium">
                 Pirulito raro: 5% de chance independente apenas em vitórias
