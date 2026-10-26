@@ -113,10 +113,10 @@ public final class Engine {
         }
     }
 
-    /** Rolagem inteira em [0, 95). */
+    /** Rolagem inteira em [0, 100). */
     public static int prizeFromRoll(int roll) {
         if (roll < 0 || roll >= PRIZE_TOTAL) {
-            throw new IllegalArgumentException("rolagem de prêmio fora de 0..94");
+            throw new IllegalArgumentException("rolagem de prêmio fora de 0..99");
         }
         int acc = 0;
         for (int i = 0; i < PRIZE_WEIGHTS.length; i++) {
