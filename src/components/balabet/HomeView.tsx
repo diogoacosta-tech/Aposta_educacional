@@ -18,7 +18,7 @@ export function HomeView({ onSelectTab }: { onSelectTab: (tab: NavTab) => void }
             Três rodadas. Linhas independentes. Nenhum dinheiro real.
           </h1>
           <p className="mt-4 max-w-2xl text-base leading-relaxed text-muted">
-            A BalaBet é uma plataforma fechada de simulação para até cinco pessoas. Cada participante entra com seu
+            A Neon Sugar Cassino é uma plataforma fechada de simulação para até cinco pessoas. Cada participante entra com seu
             saldo individual de balas virtuais, define sua estratégia escolhendo <strong>SUBIR</strong>,{" "}
             <strong>CAIR</strong> ou <strong>AUTOMÁTICO</strong> e acompanha a oscilação gráfica em tempo real por 15 segundos.
             O último segmento real da sua linha decide a vitória, derrota ou empate.
