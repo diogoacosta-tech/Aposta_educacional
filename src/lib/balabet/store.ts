@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { persist, createJSONStorage } from "zustand/middleware";
 import {
   type Direction,
   type Mode,
@@ -10,6 +10,22 @@ import {
 } from "./engine.ts";
 import { settleUrl } from "./api.ts";
 import { useLive, type ChartSeries } from "./live.ts";
+
+const disputeStorage = createJSONStorage(() => {
+  if (typeof window !== "undefined" && window.localStorage) {
+    return window.localStorage;
+  }
+  const memoryStore = new Map<string, string>();
+  return {
+    getItem: (key: string) => memoryStore.get(key) ?? null,
+    setItem: (key: string, value: string) => {
+      memoryStore.set(key, value);
+    },
+    removeItem: (key: string) => {
+      memoryStore.delete(key);
+    },
+  };
+});
 
 export type Phase =
   | "registration"
@@ -559,7 +575,7 @@ export const useDispute = create<DisputeState>()(
     }),
     {
       name: "balabet-dispute-v1",
-      skipHydration: true,
+      storage: disputeStorage,
       partialize: (state) => ({
         epoch: state.epoch,
         phase: state.phase,

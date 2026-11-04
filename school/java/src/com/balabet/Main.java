@@ -120,20 +120,20 @@ private static void selfTest() {
         counts[Engine.prizeFromRoll(roll)]++;
     }
 
-    expect(counts[1] == 35, "peso 1");
-    expect(counts[2] == 35, "peso 2");
-    expect(counts[3] == 16, "peso 3");
-    expect(counts[4] == 10, "peso 4");
-    expect(counts[5] == 4, "peso 5");
+    expect(counts[1] == 28, "peso 1");
+    expect(counts[2] == 28, "peso 2");
+    expect(counts[3] == 22, "peso 3");
+    expect(counts[4] == 11, "peso 4");
+    expect(counts[5] == 6, "peso 5");
 
-    expect(Engine.prizeFromRoll(56) == 2, "prêmio 2 no exemplo");
+    expect(Engine.prizeFromRoll(50) == 2, "prêmio 2 no exemplo");
 
     for (int roll = 0; roll < 100; roll++) {
         expect(Engine.lollipopFromRoll(roll) == (roll < 5), "pirulito " + roll);
     }
 
     Engine.Settlement win =
-        Engine.settle(2, 1, Engine.Mode.SUBIR, Engine.Direction.UP, 56, 0);
+        Engine.settle(2, 1, Engine.Mode.SUBIR, Engine.Direction.UP, 50, 0);
     expect(win.outcome == Engine.Outcome.WIN, "vitória");
     expect(win.prize == 2, "prêmio adicional 2");
     expect(win.lollipop, "pirulito na vitória");
