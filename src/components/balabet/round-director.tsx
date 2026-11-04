@@ -11,7 +11,8 @@ export function RoundDirector() {
   useEffect(() => {
     const snap = useDispute.getState();
     if (snap.phase !== "countdown" || snap.activeRoundId !== roundId || !roundId) return;
-    const ids = snap.players.map((player) => player.id);
+    const activePlayers = snap.players.filter((p) => !p.eliminated && snap.lockedBets[p.id]);
+    const ids = activePlayers.map((player) => player.id);
     const sims = ids.map(() => createLiveSimulator(Math.random));
     const started = performance.now();
     let frame = 0;

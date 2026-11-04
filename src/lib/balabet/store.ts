@@ -7,9 +7,9 @@ import {
   settle,
   settleLocal,
   validateNewPlayer,
-} from "./engine";
-import { settleUrl } from "./api";
-import { useLive, type ChartSeries } from "./live";
+} from "./engine.ts";
+import { settleUrl } from "./api.ts";
+import { useLive, type ChartSeries } from "./live.ts";
 
 export type Phase =
   | "registration"
@@ -30,6 +30,12 @@ export type HistoryEntry = {
   balanceAfter: number;
 };
 
+export type RechargeEntry = {
+  round: number;
+  amount: number;
+  timestamp: number;
+};
+
 export type Player = {
   id: string;
   name: string;
@@ -40,6 +46,8 @@ export type Player = {
   losses: number;
   ties: number;
   history: HistoryEntry[];
+  eliminated?: boolean;
+  recharges?: RechargeEntry[];
 };
 
 export type Draft = { mode: Mode | ""; amount: string };
@@ -77,6 +85,8 @@ type DisputeState = {
   removePlayer: (id: string) => void;
   beginDispute: () => string | null;
   setDraft: (id: string, patch: Partial<Draft>) => void;
+  rechargePlayer: (playerId: string, amountRaw: string | number) => string | null;
+  eliminatePlayer: (playerId: string) => string | null;
   startRound: () => string | null;
   markRunning: () => void;
   settleRound: (
@@ -125,6 +135,7 @@ let settleLock: string | null = null;
 function freshDrafts(players: Player[], previous?: Record<string, LockedBet>): Record<string, Draft> {
   const drafts: Record<string, Draft> = {};
   for (const player of players) {
+    if (player.eliminated) continue;
     const prior = previous?.[player.id];
     const amount =
       prior && player.balance >= 1 ? String(Math.min(prior.stake, player.balance)) : "";
@@ -163,6 +174,8 @@ export const useDispute = create<DisputeState>()(
           losses: 0,
           ties: 0,
           history: [],
+          eliminated: false,
+          recharges: [],
         };
         set({
           players: [...state.players, player],
@@ -204,6 +217,89 @@ export const useDispute = create<DisputeState>()(
           banner: null,
         });
       },
+      rechargePlayer: (playerId, amountRaw) => {
+        const state = get();
+        if (state.phase === "countdown" || state.phase === "running") {
+          return "Não é possível recarregar saldo durante uma rodada em andamento.";
+        }
+        const player = state.players.find((p) => p.id === playerId);
+        if (!player) return "Jogador não encontrado.";
+        if (player.eliminated) {
+          return "Jogadores eliminados não podem receber recarga nesta disputa.";
+        }
+        const text = typeof amountRaw === "number" ? String(amountRaw) : amountRaw.trim();
+        if (!/^[0-9]+$/.test(text)) {
+          return "A recarga deve ser um número inteiro, sem decimais.";
+        }
+        const amount = Number(text);
+        if (!Number.isSafeInteger(amount) || amount < 1) {
+          return "A quantidade mínima de recarga é 1 bala.";
+        }
+
+        const updatedPlayers = state.players.map((p) => {
+          if (p.id !== playerId) return p;
+          const recharges = p.recharges ?? [];
+          return {
+            ...p,
+            balance: p.balance + amount,
+            recharges: [
+              ...recharges,
+              {
+                round: state.roundIndex + 1,
+                amount,
+                timestamp: Date.now(),
+              },
+            ],
+          };
+        });
+
+        const currentDraft = state.drafts[playerId];
+        const newDrafts = { ...state.drafts };
+        if (currentDraft) {
+          newDrafts[playerId] = {
+            ...currentDraft,
+            amount: currentDraft.amount || "1",
+          };
+        } else {
+          newDrafts[playerId] = { mode: "", amount: "1" };
+        }
+
+        set({
+          players: updatedPlayers,
+          drafts: newDrafts,
+          banner: null,
+        });
+        return null;
+      },
+      eliminatePlayer: (playerId) => {
+        const state = get();
+        if (state.phase === "countdown" || state.phase === "running") {
+          return "Não é possível eliminar jogadores durante uma rodada em andamento.";
+        }
+        const player = state.players.find((p) => p.id === playerId);
+        if (!player) return "Jogador não encontrado.";
+        if (player.eliminated) {
+          return "Este jogador já foi eliminado da disputa.";
+        }
+
+        const updatedPlayers = state.players.map((p) =>
+          p.id === playerId ? { ...p, eliminated: true } : p
+        );
+
+        const updatedDrafts = { ...state.drafts };
+        delete updatedDrafts[playerId];
+
+        const updatedLockedBets = { ...state.lockedBets };
+        delete updatedLockedBets[playerId];
+
+        set({
+          players: updatedPlayers,
+          drafts: updatedDrafts,
+          lockedBets: updatedLockedBets,
+          banner: null,
+        });
+        return null;
+      },
       startRound: () => {
         const state = get();
         const reject = (message: string) => {
@@ -212,8 +308,22 @@ export const useDispute = create<DisputeState>()(
         };
         if (state.phase !== "preparing") return reject("A rodada não está em preparação.");
         if (state.roundIndex > 2) return reject("A disputa já teve as três rodadas.");
+
+        const activePlayers = state.players.filter((p) => !p.eliminated);
+        if (activePlayers.length === 0) {
+          return reject("Não há jogadores ativos para iniciar a rodada.");
+        }
+
+        const unresolvedZero = activePlayers.filter((p) => p.balance === 0);
+        if (unresolvedZero.length > 0) {
+          const names = unresolvedZero.map((p) => p.name).join(", ");
+          return reject(
+            `Jogador(es) com saldo esgotado: ${names}. Adicione saldo ou elimine da disputa para continuar.`
+          );
+        }
+
         const lockedBets: Record<string, LockedBet> = {};
-        for (const player of state.players) {
+        for (const player of activePlayers) {
           const draft = state.drafts[player.id];
           if (!draft || (draft.mode !== "subir" && draft.mode !== "cair" && draft.mode !== "automatico")) {
             return reject(`${player.name} ainda precisa escolher SUBIR, CAIR ou AUTOMÁTICO.`);
@@ -256,9 +366,12 @@ export const useDispute = create<DisputeState>()(
         settleLock = roundId;
         const epoch = state.epoch;
         const roundNumber = state.roundIndex + 1;
+        const activePlayersToSettle = state.players.filter(
+          (player) => !player.eliminated && state.lockedBets[player.id]
+        );
         const payload = {
           roundId,
-          players: state.players.map((player) => {
+          players: activePlayersToSettle.map((player) => {
             const bet = state.lockedBets[player.id];
             const direction =
               directions.find((item) => item.playerId === player.id)?.direction ?? "flat";
@@ -314,6 +427,9 @@ export const useDispute = create<DisputeState>()(
         const byId = new Map(rows?.map((row) => [row.id, row]) ?? []);
         const cards: ResultCard[] = [];
         const players = current.players.map((player) => {
+          if (player.eliminated || !current.lockedBets[player.id]) {
+            return player;
+          }
           const bet = current.lockedBets[player.id];
           const direction =
             directions.find((item) => item.playerId === player.id)?.direction ?? "flat";

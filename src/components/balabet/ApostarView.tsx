@@ -150,10 +150,13 @@ export function validatePlayerBet(
   player: Player,
   draft: { mode: string; amount: string } | undefined
 ): { valid: boolean; error: string | null } {
+  if (player.eliminated) {
+    return { valid: true, error: null };
+  }
   if (player.balance < 1) {
     return {
       valid: false,
-      error: `Saldo insuficiente (${player.balance} balas). Mínimo de 1 bala para apostar.`,
+      error: `Saldo esgotado (0 balas). Adicione saldo ou elimine o jogador da disputa para continuar.`,
     };
   }
   if (!draft || !draft.mode) {
@@ -273,7 +276,8 @@ export function useChartAnimation({
     activeSimulationRef.current = activeRoundId;
     const currentEpoch = epoch;
     const currentRoundId = activeRoundId;
-    const playerIds = players.map((p) => p.id);
+    const activePlayers = players.filter((p) => !p.eliminated);
+    const playerIds = activePlayers.map((p) => p.id);
     const sims = playerIds.map(() => createLiveSimulator(Math.random));
     const startTime = performance.now();
     let finishedSettlement = false;
@@ -740,8 +744,8 @@ export function DynamicRechartsChart({
               strokeWidth={1}
             />
 
-            {/* 5 Linhas de dados independentes (caminhos animados via useRef a 60fps) */}
-            {players.map((player) => {
+            {/* Linhas de dados independentes (caminhos animados via useRef a 60fps) */}
+            {players.filter((p) => !p.eliminated).map((player) => {
               const color = PLAYER_COLORS[player.colorIndex % PLAYER_COLORS.length];
               return (
                 <path
@@ -762,8 +766,8 @@ export function DynamicRechartsChart({
               );
             })}
 
-            {/* 5 Balas nas pontas das linhas (posições atualizadas via useRef a 60fps) */}
-            {players.map((player) => {
+            {/* Balas nas pontas das linhas (posições atualizadas via useRef a 60fps) */}
+            {players.filter((p) => !p.eliminated).map((player) => {
               const color = PLAYER_COLORS[player.colorIndex % PLAYER_COLORS.length];
               return (
                 <g
@@ -850,7 +854,7 @@ export function DynamicRechartsChart({
                 formatter={(value: any, name: any) => [`${value}%`, name]}
                 labelFormatter={(label: any) => `Tempo: ${label}s`}
               />
-              {players.map((player) => (
+              {players.filter((p) => !p.eliminated).map((player) => (
                 <Line
                   key={player.id}
                   type="linear"
@@ -974,6 +978,11 @@ export function DynamicRechartsChart({
               }}
             />
             <span className="font-medium text-fg">{player.name}</span>
+            {player.eliminated ? (
+              <span className="rounded bg-loss/20 px-1.5 py-0.2 font-mono text-[9px] font-semibold text-loss">
+                ELIMINADO
+              </span>
+            ) : null}
           </li>
         ))}
       </ul>
@@ -1000,6 +1009,8 @@ export function ApostarView() {
   const removePlayer = useDispute((state) => state.removePlayer);
   const beginDispute = useDispute((state) => state.beginDispute);
   const setDraft = useDispute((state) => state.setDraft);
+  const rechargePlayer = useDispute((state) => state.rechargePlayer);
+  const eliminatePlayer = useDispute((state) => state.eliminatePlayer);
   const startRound = useDispute((state) => state.startRound);
   const markRunning = useDispute((state) => state.markRunning);
   const settleRound = useDispute((state) => state.settleRound);
@@ -1008,6 +1019,13 @@ export function ApostarView() {
   const [balance, setBalance] = useState("");
   const [formError, setFormError] = useState<string | null>(null);
   const [hoveredPlayer, setHoveredPlayer] = useState<string | null>(null);
+
+  // Estados dos modais de gerenciamento administrativo (Recarga e Eliminação)
+  const [rechargeTarget, setRechargeTarget] = useState<Player | null>(null);
+  const [rechargeInput, setRechargeInput] = useState<string>("");
+  const [rechargeError, setRechargeError] = useState<string | null>(null);
+
+  const [eliminateTarget, setEliminateTarget] = useState<Player | null>(null);
 
   // Hook de animação customizado a 60fps via useRef para eliminar re-renderizações travadas
   const animationRefs = useChartAnimation({
@@ -1027,9 +1045,10 @@ export function ApostarView() {
       return { allValid: true, errors: {}, summary: null };
     }
     const errors: Record<string, string> = {};
-    let allValid = players.length > 0;
+    const activePlayers = players.filter((p) => !p.eliminated);
+    let allValid = activePlayers.length > 0;
 
-    for (const player of players) {
+    for (const player of activePlayers) {
       const draft = drafts[player.id];
       const result = validatePlayerBet(player, draft);
       if (!result.valid && result.error) {
@@ -1040,7 +1059,9 @@ export function ApostarView() {
 
     const summary = allValid
       ? null
-      : "Verifique os saldos e as opções de aposta dos jogadores antes de iniciar a rodada.";
+      : activePlayers.length === 0
+        ? "Todos os participantes foram eliminados da disputa. Reinicie para nova disputa."
+        : "Verifique os saldos e as opções de aposta dos participantes ativos antes de iniciar a rodada.";
 
     return { allValid, errors, summary };
   }, [phase, players, drafts]);
@@ -1317,66 +1338,152 @@ export function ApostarView() {
                           />
                           {player.name}
                         </h3>
-                        <span className="font-mono text-xs text-muted">
-                          {locked && bet
-                            ? `Disponível: ${formatBalas(reserved)} balas`
-                            : `Saldo: ${formatBalas(player.balance)} balas`}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          {player.eliminated ? (
+                            <span className="rounded bg-loss/15 px-2 py-0.5 font-mono text-[10px] font-semibold text-loss border border-loss/30">
+                              ELIMINADO
+                            </span>
+                          ) : player.balance === 0 ? (
+                            <span className="rounded bg-amber-500/20 px-2 py-0.5 font-mono text-[10px] font-semibold text-amber-400 border border-amber-500/30">
+                              0 BALAS
+                            </span>
+                          ) : (
+                            <span className="font-mono text-xs text-muted">
+                              {locked && bet
+                                ? `Disponível: ${formatBalas(reserved)} balas`
+                                : `Saldo: ${formatBalas(player.balance)} balas`}
+                            </span>
+                          )}
+
+                          {!player.eliminated && phase === "preparing" && !locked ? (
+                            <button
+                              type="button"
+                              className="text-[11px] font-mono text-gold hover:text-gold-2 hover:underline transition"
+                              onClick={() => {
+                                setRechargeTarget(player);
+                                setRechargeInput("");
+                                setRechargeError(null);
+                              }}
+                              title="Recarregar saldo administrativamente"
+                            >
+                              + Recarga
+                            </button>
+                          ) : null}
+                        </div>
                       </header>
 
-                      {/* Seletor de Modo */}
-                      <div className="mt-3">
-                        <span className="text-xs text-muted block mb-1">Estratégia da Rodada:</span>
-                        <div
-                          className="grid grid-cols-3 gap-1"
-                          role="group"
-                          aria-label={`Modo de ${player.name}`}
-                        >
-                          {MODES.map((mode) => {
-                            const selected = (locked ? bet?.mode : draft.mode) === mode;
-                            return (
-                              <button
-                                key={mode}
-                                type="button"
-                                disabled={locked || phase !== "preparing"}
-                                aria-pressed={selected}
-                                className={`btn ${selected ? "btn-primary shadow-sm" : "btn-ghost"} px-1 text-xs`}
-                                onClick={() => setDraft(player.id, { mode })}
-                              >
-                                {MODE_LABEL[mode]}
-                              </button>
-                            );
-                          })}
+                      {/* Situação 1: JOGADOR ELIMINADO */}
+                      {player.eliminated ? (
+                        <div className="mt-3 rounded-xl border border-loss/30 bg-loss/10 p-3 text-xs space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="font-semibold text-loss flex items-center gap-1.5">
+                              <span>⛔</span>
+                              <span>SITUAÇÃO: ELIMINADO</span>
+                            </span>
+                            <span className="font-mono text-[10px] text-muted">Disputa atual</span>
+                          </div>
+                          <p className="text-muted leading-relaxed">
+                            Este jogador foi retirado das rodadas restantes. Suas vitórias ({player.wins}), derrotas ({player.losses}), empates ({player.ties}) e ranking continuam integralmente preservados.
+                          </p>
+                          <div className="flex items-center justify-between pt-1 font-mono text-[11px] text-muted border-t border-loss/20">
+                            <span>Saldo mantido: {formatBalas(player.balance)} balas</span>
+                            <span className="text-loss/80 font-medium">Reativação bloqueada</span>
+                          </div>
                         </div>
-                      </div>
-
-                      {/* Quantidade apostada com validação */}
-                      <label className="mt-3 block text-sm">
-                        <span className="text-xs text-muted">Balas apostadas nesta rodada:</span>
-                        <input
-                          className="field mt-1 font-mono text-sm"
-                          inputMode="numeric"
-                          disabled={locked || phase !== "preparing"}
-                          value={locked && bet ? String(bet.stake) : draft.amount}
-                          placeholder={`De 1 até ${player.balance}`}
-                          onChange={(event) =>
-                            setDraft(player.id, { amount: event.target.value })
-                          }
-                        />
-                      </label>
-
-                      {/* Mensagem de Erro de Validação de Saldo/Aposta */}
-                      {phase === "preparing" && error ? (
-                        <p className="mt-2 text-xs text-loss font-medium leading-relaxed" role="alert">
-                          ⚠ {error}
-                        </p>
-                      ) : null}
-
-                      {locked && bet ? (
-                        <div className="mt-2.5 rounded-lg border border-line bg-surface/40 px-2.5 py-1.5 font-mono text-xs text-gold">
-                          Aposta bloqueada: {formatBalas(shownStake)} balas · {MODE_LABEL[bet.mode]}
+                      ) : player.balance === 0 ? (
+                        /* Situação 2: JOGADOR SEM SALDO (OPÇÃO A / OPÇÃO B) */
+                        <div className="mt-3 rounded-xl border border-amber-500/40 bg-amber-500/10 p-3.5 space-y-2.5">
+                          <div className="flex items-center justify-between">
+                            <span className="font-semibold text-amber-400 flex items-center gap-1.5 text-xs">
+                              <span>⚠️</span>
+                              <span>SITUAÇÃO: SEM SALDO (0 BALAS)</span>
+                            </span>
+                            <span className="font-mono text-[10px] text-amber-300">Ação necessária</span>
+                          </div>
+                          <p className="text-xs text-muted leading-relaxed">
+                            O jogador não pode participar da próxima rodada com saldo 0. Escolha uma das opções administrativas para resolver:
+                          </p>
+                          <div className="grid grid-cols-2 gap-2 pt-1">
+                            <button
+                              type="button"
+                              disabled={locked || phase !== "preparing"}
+                              className="btn btn-primary text-xs py-1.5 min-h-[2.25rem] w-full"
+                              onClick={() => {
+                                setRechargeTarget(player);
+                                setRechargeInput("");
+                                setRechargeError(null);
+                              }}
+                            >
+                              ADICIONAR SALDO
+                            </button>
+                            <button
+                              type="button"
+                              disabled={locked || phase !== "preparing"}
+                              className="btn btn-danger text-xs py-1.5 min-h-[2.25rem] w-full"
+                              onClick={() => setEliminateTarget(player)}
+                            >
+                              ELIMINAR DA DISPUTA
+                            </button>
+                          </div>
                         </div>
-                      ) : null}
+                      ) : (
+                        /* Situação 3: JOGADOR ATIVO COM SALDO > 0 */
+                        <>
+                          {/* Seletor de Modo */}
+                          <div className="mt-3">
+                            <span className="text-xs text-muted block mb-1">Estratégia da Rodada:</span>
+                            <div
+                              className="grid grid-cols-3 gap-1"
+                              role="group"
+                              aria-label={`Modo de ${player.name}`}
+                            >
+                              {MODES.map((mode) => {
+                                const selected = (locked ? bet?.mode : draft.mode) === mode;
+                                return (
+                                  <button
+                                    key={mode}
+                                    type="button"
+                                    disabled={locked || phase !== "preparing"}
+                                    aria-pressed={selected}
+                                    className={`btn ${selected ? "btn-primary shadow-sm" : "btn-ghost"} px-1 text-xs`}
+                                    onClick={() => setDraft(player.id, { mode })}
+                                  >
+                                    {MODE_LABEL[mode]}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+
+                          {/* Quantidade apostada com validação */}
+                          <label className="mt-3 block text-sm">
+                            <span className="text-xs text-muted">Balas apostadas nesta rodada:</span>
+                            <input
+                              className="field mt-1 font-mono text-sm"
+                              inputMode="numeric"
+                              disabled={locked || phase !== "preparing"}
+                              value={locked && bet ? String(bet.stake) : draft.amount}
+                              placeholder={`De 1 até ${player.balance}`}
+                              onChange={(event) =>
+                                setDraft(player.id, { amount: event.target.value })
+                              }
+                            />
+                          </label>
+
+                          {/* Mensagem de Erro de Validação de Saldo/Aposta */}
+                          {phase === "preparing" && error ? (
+                            <p className="mt-2 text-xs text-loss font-medium leading-relaxed" role="alert">
+                              ⚠ {error}
+                            </p>
+                          ) : null}
+
+                          {locked && bet ? (
+                            <div className="mt-2.5 rounded-lg border border-line bg-surface/40 px-2.5 py-1.5 font-mono text-xs text-gold">
+                              Aposta bloqueada: {formatBalas(shownStake)} balas · {MODE_LABEL[bet.mode]}
+                            </div>
+                          ) : null}
+                        </>
+                      )}
                     </div>
 
                     {player.history.length > 0 ? (
@@ -1504,6 +1611,171 @@ export function ApostarView() {
 
       {/* Modal de Resultados (permanece até o clique em SAIR) */}
       <ResultsPanel />
+
+      {/* MODAL OPÇÃO A: ADICIONAR SALDO (RECARGA ADMINISTRATIVA) */}
+      {rechargeTarget ? (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-bg/80 p-4 backdrop-blur-sm"
+          role="presentation"
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="recharge-title"
+            className="panel w-full max-w-md p-6 shadow-2xl border-gold/40"
+          >
+            <div className="flex items-center justify-between border-b border-line pb-3">
+              <h2 id="recharge-title" className="text-lg font-semibold text-fg flex items-center gap-2">
+                <span
+                  className="size-3 rounded-full"
+                  style={{ background: colorOf(rechargeTarget.colorIndex) }}
+                />
+                Adicionar Saldo — {rechargeTarget.name}
+              </h2>
+              <span className="font-mono text-xs text-gold">Recarga Administrativa</span>
+            </div>
+
+            <div className="mt-4 space-y-4">
+              <div className="rounded-lg border border-line bg-surface/60 p-3 text-xs space-y-1.5">
+                <div className="flex justify-between">
+                  <span className="text-muted">Jogador:</span>
+                  <strong className="text-fg font-medium">{rechargeTarget.name}</strong>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted">Saldo atual:</span>
+                  <strong className="font-mono text-gold font-bold">
+                    {formatBalas(rechargeTarget.balance)} balas
+                  </strong>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted">Situação:</span>
+                  <span
+                    className={
+                      rechargeTarget.balance === 0
+                        ? "text-amber-400 font-semibold"
+                        : "text-win font-semibold"
+                    }
+                  >
+                    {rechargeTarget.balance === 0 ? "Saldo Esgotado (0)" : "Ativo"}
+                  </span>
+                </div>
+              </div>
+
+              <label className="block text-sm">
+                <span className="font-medium text-fg">Quantidade de balas a adicionar</span>
+                <input
+                  className="field mt-1.5 font-mono text-base"
+                  inputMode="numeric"
+                  autoFocus
+                  value={rechargeInput}
+                  onChange={(e) => {
+                    setRechargeInput(e.target.value);
+                    if (rechargeError) setRechargeError(null);
+                  }}
+                  placeholder="Digite a quantidade (ex: 10, 20, 50)"
+                />
+              </label>
+
+              {rechargeError ? (
+                <p role="alert" className="text-xs text-loss font-medium leading-relaxed">
+                  ⚠ {rechargeError}
+                </p>
+              ) : null}
+
+              <p className="text-xs text-muted leading-relaxed">
+                * A recarga é uma operação administrativa para permitir que o participante continue na disputa. Não é contabilizada como vitória, prêmio, ganho ou resultado de aposta.
+              </p>
+
+              <div className="mt-6 flex flex-wrap justify-end gap-2 pt-3 border-t border-line">
+                <button
+                  type="button"
+                  className="btn btn-ghost"
+                  onClick={() => {
+                    setRechargeTarget(null);
+                    setRechargeInput("");
+                    setRechargeError(null);
+                  }}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  onClick={() => {
+                    const err = rechargePlayer(rechargeTarget.id, rechargeInput);
+                    if (err) {
+                      setRechargeError(err);
+                      return;
+                    }
+                    setRechargeTarget(null);
+                    setRechargeInput("");
+                    setRechargeError(null);
+                  }}
+                >
+                  Confirmar Recarga
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {/* MODAL OPÇÃO B: ELIMINAR JOGADOR DA DISPUTA */}
+      {eliminateTarget ? (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-bg/80 p-4 backdrop-blur-sm"
+          role="presentation"
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="eliminate-title"
+            className="panel w-full max-w-md p-6 shadow-2xl border-loss/40"
+          >
+            <div className="flex items-center justify-between border-b border-line pb-3">
+              <h2 id="eliminate-title" className="text-lg font-semibold text-loss flex items-center gap-2">
+                <span>⚠️</span>
+                Eliminar Jogador da Disputa?
+              </h2>
+              <span className="font-mono text-xs text-loss uppercase">Definitivo</span>
+            </div>
+
+            <div className="mt-4 space-y-3 text-sm">
+              <p className="text-fg font-medium">
+                Confirma a eliminação de <strong>{eliminateTarget.name}</strong> da disputa atual?
+              </p>
+              <div className="rounded-lg border border-line bg-surface/60 p-3 text-xs space-y-1.5 text-muted">
+                <p>• O jogador <strong>não participará das rodadas restantes</strong>.</p>
+                <p>• Todo o histórico de <strong>vitórias ({eliminateTarget.wins})</strong>, <strong>derrotas ({eliminateTarget.losses})</strong> e <strong>empates ({eliminateTarget.ties})</strong> será integralmente preservado.</p>
+                <p>• A posição no ranking e sua taxa de sucesso continuarão registradas.</p>
+                <p>• <strong>Nenhuma derrota artificial</strong> será computada pela eliminação.</p>
+                <p>• Os demais participantes ativos prosseguirão normalmente até a 3ª rodada.</p>
+                <p className="text-loss/90 font-semibold">• A eliminação é definitiva para esta disputa: recargas futuras serão bloqueadas.</p>
+              </div>
+
+              <div className="mt-6 flex flex-wrap justify-end gap-2 pt-3 border-t border-line">
+                <button
+                  type="button"
+                  className="btn btn-ghost"
+                  onClick={() => setEliminateTarget(null)}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-danger"
+                  onClick={() => {
+                    eliminatePlayer(eliminateTarget.id);
+                    setEliminateTarget(null);
+                  }}
+                >
+                  Confirmar Eliminação
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

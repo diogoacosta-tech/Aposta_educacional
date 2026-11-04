@@ -201,13 +201,37 @@ export type Ranked = {
   percent: number | null;
   rank: number;
   tied: boolean;
+  eliminated?: boolean;
 };
 
+export function validateRecharge(raw: string | number): {
+  valid: boolean;
+  amount?: number;
+  error?: string;
+} {
+  const text = typeof raw === "number" ? String(raw) : raw.trim();
+  if (!text) {
+    return { valid: false, error: "Informe a quantidade de balas para recarga." };
+  }
+  if (!/^[0-9]+$/.test(text)) {
+    return {
+      valid: false,
+      error: "A recarga deve ser um número inteiro, sem decimais.",
+    };
+  }
+  const value = Number(text);
+  if (!Number.isSafeInteger(value) || value < 1) {
+    return { valid: false, error: "A quantidade mínima de recarga é 1 bala." };
+  }
+  return { valid: true, amount: value };
+}
+
 export function rankPlayers(
-  players: { id: string; name: string; wins: number; losses: number }[],
+  players: { id: string; name: string; wins: number; losses: number; eliminated?: boolean }[],
 ): Ranked[] {
   const ordered = players.map((player, index) => ({
     ...player,
+    eliminated: Boolean(player.eliminated),
     percent: successRatio(player.wins, player.losses),
     index,
   }));
@@ -242,6 +266,7 @@ export function rankPlayers(
       percent: player.percent,
       rank,
       tied,
+      eliminated: player.eliminated,
     };
   });
 }
