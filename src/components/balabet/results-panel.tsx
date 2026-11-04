@@ -155,6 +155,7 @@ export function ResultsPanel() {
 
   const { candy, lollipop } = useArt();
   const exitRef = useRef<HTMLButtonElement>(null);
+  const sectionRef = useRef<HTMLElement>(null);
   const [confettiNonce, setConfettiNonce] = useState(0);
 
   // Estados dos modais de ação rápida no painel de resultados
@@ -167,7 +168,8 @@ export function ResultsPanel() {
   const hasWinner = Boolean(roundView?.cards.some((card) => card.outcome === "win"));
 
   useEffect(() => {
-    exitRef.current?.focus();
+    sectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    exitRef.current?.focus({ preventScroll: true });
     if (hasWinner) {
       setConfettiNonce((n) => n + 1);
     }
@@ -183,26 +185,32 @@ export function ResultsPanel() {
       {/* Efeito de confetes no centro da tela ao vencer uma aposta */}
       <ConfettiCanvas key={`${roundView.round}-${confettiNonce}`} active={hasWinner} />
 
-      <div className="fixed inset-x-0 bottom-0 top-16 z-30 overflow-y-auto bg-bg/80 p-4 backdrop-blur-sm">
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="results-title"
-          className="mx-auto w-full max-w-6xl"
-        >
-          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+      <section
+        ref={sectionRef}
+        id="painel-resultados"
+        aria-labelledby="results-title"
+        className="panel border-2 border-gold/40 bg-surface/95 p-5 sm:p-6 shadow-2xl rounded-2xl space-y-5 my-4"
+      >
+        <div className="w-full">
+          <div className="mb-5 flex flex-wrap items-center justify-between gap-3 border-b border-line/60 pb-4">
             <div>
-              <div className="flex items-center gap-2">
-                <h2 id="results-title" className="text-xl font-semibold">
-                  Resultados da rodada {roundView.round}/3
+              <div className="flex flex-wrap items-center gap-2.5">
+                <h2 id="results-title" className="text-xl sm:text-2xl font-bold tracking-tight text-fg">
+                  Resultados da Rodada {roundView.round}/3
                 </h2>
                 {hasWinner ? (
-                  <span className="rounded-full bg-win/20 px-2.5 py-0.5 font-mono text-xs font-semibold text-win border border-win/40 animate-pulse">
+                  <span className="rounded-full bg-win/20 px-3 py-1 font-mono text-xs font-bold text-win border border-win/40 animate-pulse">
                     🎉 VITÓRIA NA RODADA
                   </span>
-                ) : null}
+                ) : (
+                  <span className="rounded-full bg-surface-2 px-3 py-1 font-mono text-xs font-semibold text-muted border border-line">
+                    RODADA CONCLUÍDA
+                  </span>
+                )}
               </div>
-              <p className="text-sm text-muted">Os quadrinhos ficam aqui até você clicar em SAIR.</p>
+              <p className="mt-1 text-sm text-muted">
+                Os resultados dos participantes permanecem visíveis. Clique em <strong>SAIR</strong> para avançar para a próxima etapa.
+              </p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
               {hasWinner ? (
@@ -216,12 +224,12 @@ export function ResultsPanel() {
                   <span>Soltar Confetes</span>
                 </button>
               ) : null}
-              <button type="button" className="btn btn-danger" onClick={requestReset}>
+              <button type="button" className="btn btn-ghost text-xs" onClick={requestReset}>
                 Resetar todos os dados
               </button>
               <button
                 type="button"
-                className="btn btn-primary"
+                className="btn btn-primary text-sm font-bold px-6 py-2.5 shadow-lg shadow-gold/25"
                 data-testid="exit-results"
                 ref={exitRef}
                 onClick={exitResults}
@@ -231,7 +239,7 @@ export function ResultsPanel() {
             </div>
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {roundView.cards.map((card) => {
               const p = players.find((item) => item.id === card.playerId);
               return (
@@ -303,12 +311,12 @@ export function ResultsPanel() {
             </div>
           ) : null}
         </div>
-      </div>
+      </section>
 
       {/* Modal de Recarga rápida dentro do ResultsPanel */}
       {rechargeTarget ? (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-bg/80 p-4 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
           role="presentation"
         >
           <div
@@ -399,7 +407,7 @@ export function ResultsPanel() {
       {/* Modal de Eliminação rápida dentro do ResultsPanel */}
       {eliminateTarget ? (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-bg/80 p-4 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
           role="presentation"
         >
           <div

@@ -1263,6 +1263,9 @@ export function ApostarView() {
         </section>
       ) : (
         <>
+          {/* Painel de Resultados da Rodada (Exibido no fluxo normal da página quando a rodada termina) */}
+          <ResultsPanel />
+
           {/* Card explicativo das regras centrais de aposta e probabilidades */}
           <section className="panel p-4 bg-surface/60 border-line/80 space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line/50 pb-2">
@@ -1609,13 +1612,10 @@ export function ApostarView() {
         </>
       )}
 
-      {/* Modal de Resultados (permanece até o clique em SAIR) */}
-      <ResultsPanel />
-
       {/* MODAL OPÇÃO A: ADICIONAR SALDO (RECARGA ADMINISTRATIVA) */}
       {rechargeTarget ? (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-bg/80 p-4 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
           role="presentation"
         >
           <div
@@ -1723,7 +1723,7 @@ export function ApostarView() {
       {/* MODAL OPÇÃO B: ELIMINAR JOGADOR DA DISPUTA */}
       {eliminateTarget ? (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-bg/80 p-4 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
           role="presentation"
         >
           <div

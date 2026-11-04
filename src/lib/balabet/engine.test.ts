@@ -448,3 +448,152 @@ test("Cenário 7: Nova disputa reinicia condição de eliminado", () => {
   assert.equal(useDispute.getState().players[0].eliminated, false);
   assert.equal(useDispute.getState().players[0].balance, 10);
 });
+
+test("AudioEngine: singleton, controle de volume, mudo e listeners", async () => {
+  const { getAudioEngine } = await import("./audio-synth.ts");
+  const engine = getAudioEngine();
+  const engine2 = getAudioEngine();
+
+  // Teste de singleton
+  assert.equal(engine, engine2);
+
+  // Volume clamping
+  engine.setVolume(0.5);
+  assert.equal(engine.volume, 0.5);
+
+  engine.setVolume(1.5); // Deve ser limitado em 1
+  assert.equal(engine.volume, 1.0);
+
+  engine.setVolume(-0.2); // Deve ser limitado em 0
+  assert.equal(engine.volume, 0.0);
+
+  engine.setVolume(0.4);
+  assert.equal(engine.volume, 0.4);
+
+  // Mudo toggle
+  const initialMute = engine.isMuted;
+  engine.toggleMute();
+  assert.equal(engine.isMuted, !initialMute);
+  engine.toggleMute();
+  assert.equal(engine.isMuted, initialMute);
+
+  // Listener subscription
+  let notified = false;
+  const unsub = engine.subscribe(() => {
+    notified = true;
+  });
+  engine.setVolume(0.6);
+  assert.equal(notified, true);
+  unsub();
+
+  // Pause em estado inicial não gera erro
+  engine.pause();
+  assert.equal(engine.isPlaying, false);
+});
+
+test("Simulação de Encerramento: 1 jogador, vitória, avanço completo das 3 rodadas", async () => {
+  const store = useDispute.getState();
+  store.confirmReset();
+
+  store.addPlayer("Alice", "10");
+  store.beginDispute();
+
+  const aliceId = useDispute.getState().players[0].id;
+
+  // Rodada 1
+  store.setDraft(aliceId, { mode: "subir", amount: "2" });
+  store.startRound();
+  store.markRunning();
+  await store.settleRound([{ playerId: aliceId, direction: "up" }], []);
+
+  assert.equal(useDispute.getState().phase, "results");
+  assert.equal(useDispute.getState().roundView?.cards.length, 1);
+  assert.equal(useDispute.getState().roundView?.cards[0].outcome, "win");
+  assert.ok(useDispute.getState().players[0].balance > 10);
+
+  // Avança para rodada 2
+  store.exitResults();
+  assert.equal(useDispute.getState().phase, "preparing");
+  assert.equal(useDispute.getState().roundIndex, 1);
+
+  // Rodada 2
+  store.setDraft(aliceId, { mode: "cair", amount: "3" });
+  store.startRound();
+  store.markRunning();
+  await store.settleRound([{ playerId: aliceId, direction: "up" }], []); // derrota
+
+  assert.equal(useDispute.getState().phase, "results");
+  assert.equal(useDispute.getState().roundView?.cards[0].outcome, "loss");
+
+  // Avança para rodada 3
+  store.exitResults();
+  assert.equal(useDispute.getState().phase, "preparing");
+  assert.equal(useDispute.getState().roundIndex, 2);
+
+  // Rodada 3 (última)
+  store.setDraft(aliceId, { mode: "subir", amount: "1" });
+  store.startRound();
+  store.markRunning();
+  await store.settleRound([{ playerId: aliceId, direction: "up" }], []);
+
+  assert.equal(useDispute.getState().phase, "results");
+  assert.equal(useDispute.getState().roundView?.round, 3);
+
+  // Encerramento final da disputa
+  store.exitResults();
+  assert.equal(useDispute.getState().phase, "final");
+  assert.equal(useDispute.getState().players[0].history.length, 3);
+});
+
+test("Simulação de Encerramento: 5 jogadores simultâneos com Vitória, Derrota e Empate", async () => {
+  const store = useDispute.getState();
+  store.confirmReset();
+
+  store.addPlayer("Jogador 1", "20");
+  store.addPlayer("Jogador 2", "20");
+  store.addPlayer("Jogador 3", "20");
+  store.addPlayer("Jogador 4", "20");
+  store.addPlayer("Jogador 5", "20");
+  store.beginDispute();
+
+  const players = useDispute.getState().players;
+  assert.equal(players.length, 5);
+
+  // Configura apostas variadas
+  store.setDraft(players[0].id, { mode: "subir", amount: "5" });
+  store.setDraft(players[1].id, { mode: "cair", amount: "4" });
+  store.setDraft(players[2].id, { mode: "subir", amount: "3" });
+  store.setDraft(players[3].id, { mode: "automatico", amount: "2" });
+  store.setDraft(players[4].id, { mode: "subir", amount: "1" });
+
+  store.startRound();
+  store.markRunning();
+
+  // Direções: P1 (up -> win), P2 (up -> loss), P3 (flat -> tie), P4 (up -> win), P5 (down -> loss)
+  await store.settleRound(
+    [
+      { playerId: players[0].id, direction: "up" },
+      { playerId: players[1].id, direction: "up" },
+      { playerId: players[2].id, direction: "flat" },
+      { playerId: players[3].id, direction: "up" },
+      { playerId: players[4].id, direction: "down" },
+    ],
+    []
+  );
+
+  const state = useDispute.getState();
+  assert.equal(state.phase, "results");
+  assert.equal(state.roundView?.cards.length, 5);
+
+  const cards = state.roundView!.cards;
+  assert.equal(cards.find((c) => c.playerId === players[0].id)?.outcome, "win");
+  assert.equal(cards.find((c) => c.playerId === players[1].id)?.outcome, "loss");
+  assert.equal(cards.find((c) => c.playerId === players[2].id)?.outcome, "tie");
+  assert.equal(cards.find((c) => c.playerId === players[3].id)?.outcome, "win");
+  assert.equal(cards.find((c) => c.playerId === players[4].id)?.outcome, "loss");
+
+  // Transição suave para próxima rodada
+  store.exitResults();
+  assert.equal(useDispute.getState().phase, "preparing");
+  assert.equal(useDispute.getState().roundIndex, 1);
+});

@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { DEFAULT_CANDY, useArt } from "@/lib/balabet/art";
 import { phaseLabel, useDispute } from "@/lib/balabet/store";
+import { AudioPlayer } from "@/components/balabet/audio-player";
 
 export type NavTab = "inicio" | "apostar" | "top" | "como-jogar";
 
@@ -70,13 +71,14 @@ export function AppShell({
             </nav>
           </div>
 
-          <div className="flex items-center gap-3">
-            <p className="hidden font-mono text-xs tracking-wide text-gold sm:block" aria-live="polite">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+            <AudioPlayer />
+            <p className="hidden font-mono text-xs tracking-wide text-gold lg:block" aria-live="polite">
               {ready ? phaseLabel(phase, roundIndex) : "CARREGANDO"}
             </p>
             <button
               type="button"
-              className="btn btn-danger"
+              className="btn btn-danger text-xs sm:text-sm px-3 py-1.5"
               data-testid="reset-open"
               onClick={requestReset}
             >
